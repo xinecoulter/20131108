@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+  <head>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  </head>
+  <body>
+    <script>
+      var dataset = [ 2, 1, 5, 4, 6];
+
+      var svg = d3.select("body").append("svg")
+          .attr("width", 200)
+          .attr("height", 200);
+
+      svg.selectAll("rect")
+          .data(dataset)
+        .enter().append("rect")
+          .attr("x", function(d, i) { return i * 33; })
+          .attr("y", 0)
+          .attr("width", 30)
+          .attr("height", function(d) { return d * 30; });
+    </script>
+  </body>
+</html>

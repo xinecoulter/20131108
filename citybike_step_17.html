@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+	<head>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <style>
+      body { font: 10px sans-serif; }
+      .top { font-size: 20px; padding-left:50px; }
+      .row { display: inline-block; height: 200px; width: 800px; }
+      .chartDiv { float: left; height: 200px; width: 400px; }
+      rect { fill: steelblue; }
+      .x.axis path { display: none; }
+      .x.axis text { display: none; }
+      .chartLabel { font-size: 14px; }
+    </style>
+	</head>
+	<body>
+	  <div id="dashboard">
+	    <div class="row">
+	      <div id="chart1" class="chartDiv"></div>
+	      <div id="chart2" class="chartDiv"></div>
+	    </div>
+	    <div class="row">
+	      <div id="chart3" class="chartDiv"></div>
+	      <div id="chart4" class="chartDiv"></div>
+	    </div>
+	    <div class="row">
+	      <div id="chart5" class="chartDiv"></div>
+	      <div id="chart6" class="chartDiv"></div>
+	    </div>
+	    <div class="row">
+	      <div id="chart7" class="chartDiv"></div>
+	      <div id="chart8" class="chartDiv"></div>
+	    </div>
+	  </div>
+    <script>
+    
+    // Variables Governing Total Dashboard
+    var margin = {top: 10, right: 10, bottom: 20, left: 70},
+        width  = 400 - margin.left - margin.right,
+        height = 200 - margin.top  - margin.bottom;
+
+    // Define Date Parser & Formatter
+    var parseDate  = d3.time.format("%m/%d/%Y").parse;
+    var classFormatDate = d3.time.format("%y%m%d")
+
+    // Get Data and Create The Charts
+    d3.csv("citybike_data_transposed.csv", function(error, data) {
+
+      // Get the Dates that are present
+      var dsDates = d3.keys(data[0]).filter(function(key) { return key !== "Category"});
+
+      // Create an object for each Category which is a JS object of the date and the value
+      data.forEach(function(d) {
+        d.barSeries = dsDates.map(function(dateName) { return {date: parseDate(dateName), value: +d[dateName]}; });
+      });
+
+      // Bind the data to each chartDiv
+      d3.selectAll(".chartDiv").data(data);
+
+      // Instantiate the Reusable Chart
+      var tempChart = barChart()
+          .width(width)
+          .height(height)
+          .margin(margin);
+
+      // Call the Reusable Chart on each of the chartDiv's which have data bound to them
+      d3.select(".chartDiv").call(tempChart);
+
+      //
+      //
+      // Bar Chart 1
+
+//      // Bar Chart 1 X Axis Scale
+//      var barChartOneXScale = d3.scale.ordinal()
+//          .domain(data[0].barSeries.map(function(d) { return d.date; }))
+//          .rangeRoundBands([0, width], .1);
+//
+//      // Bar Chart 1 Y Axis Scale
+//      var barChartOneYScale = d3.scale.linear()
+//          .domain([0, d3.max(data[0].barSeries, function(d) { return d.value; })])
+//          .range([height, 0]).nice();
+//
+//      // Bar Chart 1 X Axis Definition
+//      var barChartOneXAxis = d3.svg.axis()
+//          .scale(barChartOneXScale)
+//          .orient("bottom");
+//
+//      // Bar Chart 1 Y Axis Definition
+//      var barChartOneYAxis = d3.svg.axis()
+//          .scale(barChartOneYScale)
+//          .orient("left");
+//
+//      // Bar Chart 1 X Axis Creation
+//      barChartOneSVG.append("g")
+//          .attr("class", "x axis")
+//          .attr("transform", "translate(0," + height + ")")
+//          .call(barChartOneXAxis);
+//
+//      // Bar Chart 1 Y Axis Creation
+//      barChartOneSVG.append("g")
+//          .attr("class", "y axis")
+//          .call(barChartOneYAxis);
+//
+//      // Bar Chart 1 Bar Creation
+//      barChartOneSVG.append("g").attr("class", "chartOneBars").selectAll("rect")
+//          .data(data[0].barSeries)
+//        .enter().append("rect")
+//          .attr("class", function(d) { return "bar" + classFormatDate(d.date); })
+//          .attr("x", function(d) { return barChartOneXScale(d.date); })
+//          .attr("y", function(d) { return barChartOneYScale(d.value); })
+//          .attr("width", barChartOneXScale.rangeBand())
+//          .attr("height", function(d) { return height - barChartOneYScale(d.value); });
+//
+    }); // end d3.csv(...) {...};
+
+    // Reusable Bar Chart
+    function barChart() {
+
+      // Internal Variables for Closure
+      var margin,
+          width,
+          height;
+
+      // Creation of the Chart
+      function chart(selection) {
+
+        // Given a selection, go through each element and create a chart for it.
+        selection.each(function(d, i) {
+
+          // SVG Creation
+          var barChartSVG = d3.select(this).append("svg")
+              .attr( "width", width  + margin.left +  margin.right)
+              .attr("height", height + margin.top  + margin.bottom)
+            .append("g")
+              .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+          // Define X Axis Scale
+          var barChartXScale = d3.scale.ordinal()
+              .domain(d.barSeries.map(function(obj) { return obj.date; }))
+              .rangeRoundBands([0, width], .1);
+
+          // Define Y Axis Scale
+          var barChartYScale = d3.scale.linear()
+              .domain([0, d3.max(d.barSeries, function(obj) { return obj.value; })])
+              .range([height, 0]).nice();
+
+        });
+        
+      } // end function chart(selection) { ... }
+
+      //
+      //
+      // Getters & Setters
+      chart.width = function(_) {
+        if (!arguments.length) return width;
+        width = _;
+        return chart;
+      };
+
+      chart.height = function(_) {
+        if (!arguments.length) return height;
+        height = _;
+        return chart;
+      };
+
+      chart.margin = function(_) {
+        if (!arguments.length) return margin;
+        margin = _;
+        return chart;
+      };
+
+      //
+      //
+      // Return the Chart to enable chaining syntax
+      return chart;
+
+    } // end of function barChart() {...}
+
+    </script>
+	</body>
+</html>

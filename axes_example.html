@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+  <head>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  </head>
+  <body>
+    <script>
+      var inner = d3.select("body").append("svg")
+          .attr("height",200)
+          .attr("width",200)
+        .append("g")
+          .attr("transform", "translate(30,20)");
+    
+      var axisScale =d3.scale.linear()
+          .domain([0, 100])
+          .range([0, 190]);
+
+      var xAxis = d3.svg.axis()
+          .scale(axisScale)
+          .orient("bottom"); // try bottom, top, left & right
+
+      var xAxisGroup = inner.call(xAxis);
+    </script>
+  </body>
+</html>

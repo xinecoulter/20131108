@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+	<head>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <style>
+      body { font: 10px sans-serif; }
+      .top { font-size: 20px; padding-left:50px; }
+      .row { display: inline-block; height: 200px; width: 800px; }
+      .chartDiv { float: left; height: 200px; width: 400px; }
+      rect { fill: steelblue; }
+      .x.axis path { display: none; }
+      .x.axis text { display: none; }
+      .chartLabel { font-size: 14px; }
+      .chartDataLabel { font-size: 14px; }
+    </style>
+	</head>
+	<body>
+	  <div id="dashboard">
+	    <div class="top">
+	      Date: <span id="dateID"></span>
+	    </div>
+	    <div class="row">
+	      <div id="chart1" class="chartDiv"></div>
+	      <div id="chart2" class="chartDiv"></div>
+	    </div>
+	    <div class="row">
+	      <div id="chart3" class="chartDiv"></div>
+	      <div id="chart4" class="chartDiv"></div>
+	    </div>
+	    <div class="row">
+	      <div id="chart5" class="chartDiv"></div>
+	      <div id="chart6" class="chartDiv"></div>
+	    </div>
+	    <div class="row">
+	      <div id="chart7" class="chartDiv"></div>
+	      <div id="chart8" class="chartDiv"></div>
+	    </div>
+	  </div>
+    <script>
+    
+    // Variables Governing Total Dashboard
+    var margin = {top: 10, right: 10, bottom: 40, left: 70},
+        width  = 400 - margin.left - margin.right,
+        height = 200 - margin.top  - margin.bottom;
+
+    // Define Date Parser based on csv input
+    var parseDate  = d3.time.format("%m/%d/%Y").parse;
+    var formatTopDate = d3.time.format("%B %d, 20%y (%A)");
+    var classFormatDate = d3.time.format("%y%m%d")
+
+    // Define Number Formatter for .chartDataLabel
+    var chartDataLabelFormatter = d3.format("0,f");
+
+    // Get Data and Create The Charts
+    d3.csv("citybike_data_transposed.csv", function(error, data) {
+
+      // Get the Dates that are present
+      var dsDates = d3.keys(data[0]).filter(function(key) { return key !== "Category"});
+
+      // Create an object for each Category which is a JS object of the date and the value
+      data.forEach(function(d) {
+        d.barSeries = dsDates.map(function(dateName) { return {date: parseDate(dateName), value: +d[dateName]}; });
+      });
+
+      //
+      //
+      // Bar Chart 1
+
+      // Bar Chart 1 SVG Creation
+      var barChartOneSVG = d3.select("#chart1").append("svg")
+          .attr( "width", width  + margin.left +  margin.right)
+          .attr("height", height + margin.top  + margin.bottom)
+        .append("g")
+          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      // Bar Chart 1 X Axis Scale
+      barChartOneXScale = d3.scale.ordinal()
+          .domain(data[0].barSeries.map(function(d) { return d.date; }))
+          .rangeRoundBands([0, width], .1);
+
+      // Bar Chart 1 Y Axis Scale
+      var barChartOneYScale = d3.scale.linear()
+          .domain([0, d3.max(data[0].barSeries, function(d) { return d.value; })])
+          .range([height, 0]).nice();
+
+      // Bar Chart 1 X Axis Definition
+      var barChartOneXAxis = d3.svg.axis()
+          .scale(barChartOneXScale)
+          .orient("bottom");
+
+      // Bar Chart 1 Y Axis Definition
+      var barChartOneYAxis = d3.svg.axis()
+          .scale(barChartOneYScale)
+          .orient("left");
+
+      // Bar Chart 1 X Axis Creation
+      barChartOneSVG.append("g")
+          .attr("class", "x axis")
+          .attr("transform", "translate(0," + height + ")")
+          .call(barChartOneXAxis);
+
+      // Bar Chart 1 Y Axis Creation
+      barChartOneSVG.append("g")
+          .attr("class", "y axis")
+          .call(barChartOneYAxis);
+
+      // Bar Chart 1 Bar Creation
+      barChartOneSVG.append("g").attr("class", "chartOneBars").selectAll("rect")
+          .data(data[0].barSeries)
+        .enter().append("rect")
+          .attr("class", function(d) { return "bar" + classFormatDate(d.date); })
+          .attr("x", function(d) { return barChartOneXScale(d.date); })
+          .attr("y", function(d) { return barChartOneYScale(d.value); })
+          .attr("width", barChartOneXScale.rangeBand())
+          .attr("height", function(d) { return height - barChartOneYScale(d.value); });
+
+      // Bar Chart 1 Label
+      barChartOneSVG.append("g")
+          .datum(data[0])
+        .append("text")
+          .attr("class", "chartLabel")
+          .attr("x", 0)
+          .attr("y", height + 30)
+          .text(function(d) { return d.Category; });
+
+      // Bar Chart 1 Data Label Creation
+      barChartOneSVG.append("g")
+          .datum(data[0])
+        .append("text")
+          .attr("class", "chartDataLabel")
+          .attr("x", 0)
+          .attr("y", height + 15)
+          .text(null);
+
+      //
+      //
+      // Bar Chart 2
+
+      // Bar Chart 2 SVG Creation
+      var barChartTwoSVG = d3.select("#chart2").append("svg")
+          .attr( "width", width  + margin.left +  margin.right)
+          .attr("height", height + margin.top  + margin.bottom)
+        .append("g")
+          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      // Bar Chart 2 X Axis Scale
+      var barChartTwoXScale = d3.scale.ordinal()
+          .domain(data[1].barSeries.map(function(d) { return d.date; }))
+          .rangeRoundBands([0, width], .1);
+
+      // Bar Chart 2 Y Axis Scale
+      var barChartTwoYScale = d3.scale.linear()
+          .domain([0, d3.max(data[1].barSeries, function(d) { return d.value; })])
+          .range([height, 0]).nice();
+
+      // Bar Chart 2 X Axis Definition
+      var barChartTwoXAxis = d3.svg.axis()
+          .scale(barChartTwoXScale)
+          .orient("bottom");
+
+      // Bar Chart 2 Y Axis Definition
+      var barChartTwoYAxis = d3.svg.axis()
+          .scale(barChartTwoYScale)
+          .orient("left");
+
+      // Bar Chart 2 X Axis Creation
+      barChartTwoSVG.append("g")
+          .attr("class", "x axis")
+          .attr("transform", "translate(0," + height + ")")
+          .call(barChartTwoXAxis);
+
+      // Bar Chart 2 Y Axis Creation
+      barChartTwoSVG.append("g")
+          .attr("class", "y axis")
+          .call(barChartTwoYAxis);
+
+      // Bar Chart 2 Bar Creation
+      barChartTwoSVG.append("g").attr("class", "chartTwoBars").selectAll("rect")
+          .data(data[1].barSeries)
+        .enter().append("rect")
+          .attr("class", function(d) { return "bar" + classFormatDate(d.date); })
+          .attr("x", function(d) { return barChartTwoXScale(d.date); })
+          .attr("y", function(d) { return barChartTwoYScale(d.value); })
+          .attr("width", barChartTwoXScale.rangeBand())
+          .attr("height", function(d) { return height - barChartTwoYScale(d.value); });
+
+      // Bar Chart 2 Label
+      barChartTwoSVG.append("g")
+          .datum(data[1])
+        .append("text")
+          .attr("class", "chartLabel")
+          .attr("x", 0)
+          .attr("y", height + 30)
+          .text(function(d) { return d.Category; });
+
+      // Bar Chart 2 Data Label Creation
+      barChartTwoSVG.append("g")
+          .datum(data[1])
+        .append("text")
+          .attr("class", "chartDataLabel")
+          .attr("x", 0)
+          .attr("y", height + 15)
+          .text(null);
+
+      //
+      //
+      // Bar Chart 3
+
+      // Bar Chart 3 SVG Creation
+      var barChartThreeSVG = d3.select("#chart3").append("svg")
+          .attr( "width", width  + margin.left +  margin.right)
+          .attr("height", height + margin.top  + margin.bottom)
+        .append("g")
+          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      // Bar Chart 3 X Axis Scale
+      var barChartThreeXScale = d3.scale.ordinal()
+          .domain(data[2].barSeries.map(function(d) { return d.date; }))
+          .rangeRoundBands([0, width], .1);
+
+      // Bar Chart 3 Y Axis Scale
+      var barChartThreeYScale = d3.scale.linear()
+          .domain([0, d3.max(data[2].barSeries, function(d) { return d.value; })])
+          .range([height, 0]).nice();
+
+      // Bar Chart 3 X Axis Definition
+      var barChartThreeXAxis = d3.svg.axis()
+          .scale(barChartThreeXScale)
+          .orient("bottom");
+
+      // Bar Chart 3 Y Axis Definition
+      var barChartThreeYAxis = d3.svg.axis()
+          .scale(barChartThreeYScale)
+          .orient("left");
+
+      // Bar Chart 3 X Axis Creation
+      barChartThreeSVG.append("g")
+          .attr("class", "x axis")
+          .attr("transform", "translate(0," + height + ")")
+          .call(barChartThreeXAxis);
+
+      // Bar Chart 3 Y Axis Creation
+      barChartThreeSVG.append("g")
+          .attr("class", "y axis")
+          .call(barChartThreeYAxis);
+
+      // Bar Chart 3 Bar Creation
+      barChartThreeSVG.append("g").attr("class", "chartThreeBars").selectAll("rect")
+          .data(data[2].barSeries)
+        .enter().append("rect")
+          .attr("class", function(d) { return "bar" + classFormatDate(d.date); })
+          .attr("x", function(d) { return barChartThreeXScale(d.date); })
+          .attr("y", function(d) { return barChartThreeYScale(d.value); })
+          .attr("width", barChartThreeXScale.rangeBand())
+          .attr("height", function(d) { return height - barChartThreeYScale(d.value); });
+
+      // Bar Chart 3 Label
+      barChartThreeSVG.append("g")
+          .datum(data[2])
+        .append("text")
+          .attr("class", "chartLabel")
+          .attr("x", 0)
+          .attr("y", height + 30)
+          .text(function(d) { return d.Category; });
+
+      // Bar Chart 3 Data Label Creation
+      barChartThreeSVG.append("g")
+          .datum(data[2])
+        .append("text")
+          .attr("class", "chartDataLabel")
+          .attr("x", 0)
+          .attr("y", height + 15)
+          .text(null);
+
+      //
+      //
+      // Bar Chart 4
+
+      // Bar Chart 4 SVG Creation
+      var barChartFourSVG = d3.select("#chart4").append("svg")
+          .attr( "width", width  + margin.left +  margin.right)
+          .attr("height", height + margin.top  + margin.bottom)
+        .append("g")
+          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      // Bar Chart 4 X Axis Scale
+      var barChartFourXScale = d3.scale.ordinal()
+          .domain(data[3].barSeries.map(function(d) { return d.date; }))
+          .rangeRoundBands([0, width], .1);
+
+      // Bar Chart 4 Y Axis Scale
+      var barChartFourYScale = d3.scale.linear()
+          .domain([0, d3.max(data[3].barSeries, function(d) { return d.value; })])
+          .range([height, 0]).nice();
+
+      // Bar Chart 4 X Axis Definition
+      var barChartFourXAxis = d3.svg.axis()
+          .scale(barChartFourXScale)
+          .orient("bottom");
+
+      // Bar Chart 4 Y Axis Definition
+      var barChartFourYAxis = d3.svg.axis()
+          .scale(barChartFourYScale)
+          .orient("left");
+
+      // Bar Chart 4 X Axis Creation
+      barChartFourSVG.append("g")
+          .attr("class", "x axis")
+          .attr("transform", "translate(0," + height + ")")
+          .call(barChartFourXAxis);
+
+      // Bar Chart 4 Y Axis Creation
+      barChartFourSVG.append("g")
+          .attr("class", "y axis")
+          .call(barChartFourYAxis);
+
+      // Bar Chart 4 Bar Creation
+      barChartFourSVG.append("g").attr("class", "chartFourBars").selectAll("rect")
+          .data(data[3].barSeries)
+        .enter().append("rect")
+          .attr("class", function(d) { return "bar" + classFormatDate(d.date); })
+          .attr("x", function(d) { return barChartFourXScale(d.date); })
+          .attr("y", function(d) { return barChartFourYScale(d.value); })
+          .attr("width", barChartFourXScale.rangeBand())
+          .attr("height", function(d) { return height - barChartFourYScale(d.value); });
+
+      // Bar Chart 4 Label
+      barChartFourSVG.append("g")
+          .datum(data[3])
+        .append("text")
+          .attr("class", "chartLabel")
+          .attr("x", 0)
+          .attr("y", height + 30)
+          .text(function(d) { return d.Category; });
+
+      // Bar Chart 4 Data Label Creation
+      barChartFourSVG.append("g")
+          .datum(data[3])
+        .append("text")
+          .attr("class", "chartDataLabel")
+          .attr("x", 0)
+          .attr("y", height + 15)
+          .text(null);
+
+      //
+      //
+      // Bar Chart 5
+
+      // Bar Chart 5 SVG Creation
+      var barChartFiveSVG = d3.select("#chart5").append("svg")
+          .attr( "width", width  + margin.left +  margin.right)
+          .attr("height", height + margin.top  + margin.bottom)
+        .append("g")
+          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      // Bar Chart 5 X Axis Scale
+      var barChartFiveXScale = d3.scale.ordinal()
+          .domain(data[4].barSeries.map(function(d) { return d.date; }))
+          .rangeRoundBands([0, width], .1);
+
+      // Bar Chart 5 Y Axis Scale
+      var barChartFiveYScale = d3.scale.linear()
+          .domain([0, d3.max(data[4].barSeries, function(d) { return d.value; })])
+          .range([height, 0]).nice();
+
+      // Bar Chart 5 X Axis Definition
+      var barChartFiveXAxis = d3.svg.axis()
+          .scale(barChartFiveXScale)
+          .orient("bottom");
+
+      // Bar Chart 5 Y Axis Definition
+      var barChartFiveYAxis = d3.svg.axis()
+          .scale(barChartFiveYScale)
+          .orient("left");
+
+      // Bar Chart 5 X Axis Creation
+      barChartFiveSVG.append("g")
+          .attr("class", "x axis")
+          .attr("transform", "translate(0," + height + ")")
+          .call(barChartFiveXAxis);
+
+      // Bar Chart 5 Y Axis Creation
+      barChartFiveSVG.append("g")
+          .attr("class", "y axis")
+          .call(barChartFiveYAxis);
+
+      // Bar Chart 5 Bar Creation
+      barChartFiveSVG.append("g").attr("class", "chartFiveBars").selectAll("rect")
+          .data(data[4].barSeries)
+        .enter().append("rect")
+          .attr("class", function(d) { return "bar" + classFormatDate(d.date); })
+          .attr("x", function(d) { return barChartFiveXScale(d.date); })
+          .attr("y", function(d) { return barChartFiveYScale(d.value); })
+          .attr("width", barChartFiveXScale.rangeBand())
+          .attr("height", function(d) { return height - barChartFiveYScale(d.value); });
+
+      // Bar Chart 5 Label Creation
+      barChartFiveSVG.append("g")
+          .datum(data[4])
+        .append("text")
+          .attr("class", "chartLabel")
+          .attr("x", 0)
+          .attr("y", height + 30)
+          .text(function(d) { return d.Category; });
+
+      // Bar Chart 5 Data Label Creation
+      barChartFiveSVG.append("g")
+          .datum(data[4])
+        .append("text")
+          .attr("class", "chartDataLabel")
+          .attr("x", 0)
+          .attr("y", height + 15)
+          .text(null);
+
+      //
+      //
+      // Bar Chart 6
+
+      // Bar Chart 6 SVG Creation
+      var barChartSixSVG = d3.select("#chart6").append("svg")
+          .attr( "width", width  + margin.left +  margin.right)
+          .attr("height", height + margin.top  + margin.bottom)
+        .append("g")
+          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      // Bar Chart 6 X Axis Scale
+      var barChartSixXScale = d3.scale.ordinal()
+          .domain(data[5].barSeries.map(function(d) { return d.date; }))
+          .rangeRoundBands([0, width], .1);
+
+      // Bar Chart 6 Y Axis Scale
+      var barChartSixYScale = d3.scale.linear()
+          .domain([0, d3.max(data[5].barSeries, function(d) { return d.value; })])
+          .range([height, 0]).nice();
+
+      // Bar Chart 6 X Axis Definition
+      var barChartSixXAxis = d3.svg.axis()
+          .scale(barChartSixXScale)
+          .orient("bottom");
+
+      // Bar Chart 6 Y Axis Definition
+      var barChartSixYAxis = d3.svg.axis()
+          .scale(barChartSixYScale)
+          .orient("left");
+
+      // Bar Chart 6 X Axis Creation
+      barChartSixSVG.append("g")
+          .attr("class", "x axis")
+          .attr("transform", "translate(0," + height + ")")
+          .call(barChartSixXAxis);
+
+      // Bar Chart 6 Y Axis Creation
+      barChartSixSVG.append("g")
+          .attr("class", "y axis")
+          .call(barChartSixYAxis);
+
+      // Bar Chart 6 Bar Creation
+      barChartSixSVG.append("g").attr("class", "chartSixBars").selectAll("rect")
+          .data(data[5].barSeries)
+        .enter().append("rect")
+          .attr("class", function(d) { return "bar" + classFormatDate(d.date); })
+          .attr("x", function(d) { return barChartSixXScale(d.date); })
+          .attr("y", function(d) { return barChartSixYScale(d.value); })
+          .attr("width", barChartSixXScale.rangeBand())
+          .attr("height", function(d) { return height - barChartSixYScale(d.value); });
+
+      // Bar Chart 6 Label Creation
+      barChartSixSVG.append("g")
+          .datum(data[5])
+        .append("text")
+          .attr("class", "chartLabel")
+          .attr("x", 0)
+          .attr("y", height + 30)
+          .text(function(d) { return d.Category; });
+
+      // Bar Chart 6 Data Label Creation
+      barChartSixSVG.append("g")
+          .datum(data[5])
+        .append("text")
+          .attr("class", "chartDataLabel")
+          .attr("x", 0)
+          .attr("y", height + 15)
+          .text(null);
+
+      //
+      //
+      // Bar Chart 7
+
+      // Bar Chart 7 SVG Creation
+      var barChartSevenSVG = d3.select("#chart7").append("svg")
+          .attr( "width", width  + margin.left +  margin.right)
+          .attr("height", height + margin.top  + margin.bottom)
+        .append("g")
+          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      // Bar Chart 7 X Axis Scale
+      var barChartSevenXScale = d3.scale.ordinal()
+          .domain(data[6].barSeries.map(function(d) { return d.date; }))
+          .rangeRoundBands([0, width], .1);
+
+      // Bar Chart 7 Y Axis Scale
+      var barChartSevenYScale = d3.scale.linear()
+          .domain([0, d3.max(data[6].barSeries, function(d) { return d.value; })])
+          .range([height, 0]).nice();
+
+      // Bar Chart 7 X Axis Definition
+      var barChartSevenXAxis = d3.svg.axis()
+          .scale(barChartSevenXScale)
+          .orient("bottom");
+
+      // Bar Chart 7 Y Axis Definition
+      var barChartSevenYAxis = d3.svg.axis()
+          .scale(barChartSevenYScale)
+          .orient("left");
+
+      // Bar Chart 7 X Axis Creation
+      barChartSevenSVG.append("g")
+          .attr("class", "x axis")
+          .attr("transform", "translate(0," + height + ")")
+          .call(barChartSevenXAxis);
+
+      // Bar Chart 7 Y Axis Creation
+      barChartSevenSVG.append("g")
+          .attr("class", "y axis")
+          .call(barChartSevenYAxis);
+
+      // Bar Chart 7 Bar Creation
+      barChartSevenSVG.append("g").attr("class", "chartSevenBars").selectAll("rect")
+          .data(data[6].barSeries)
+        .enter().append("rect")
+          .attr("class", function(d) { return "bar" + classFormatDate(d.date); })
+          .attr("x", function(d) { return barChartSevenXScale(d.date); })
+          .attr("y", function(d) { return barChartSevenYScale(d.value); })
+          .attr("width", barChartSevenXScale.rangeBand())
+          .attr("height", function(d) { return height - barChartSevenYScale(d.value); });
+
+      // Bar Chart 7 Label Creation
+      barChartSevenSVG.append("g")
+          .datum(data[6])
+        .append("text")
+          .attr("class", "chartLabel")
+          .attr("x", 0)
+          .attr("y", height + 30)
+          .text(function(d) { return d.Category; });
+
+      // Bar Chart 7 Data Label Creation
+      barChartSevenSVG.append("g")
+          .datum(data[6])
+        .append("text")
+          .attr("class", "chartDataLabel")
+          .attr("x", 0)
+          .attr("y", height + 15)
+          .text(null);
+
+      //
+      //
+      // Bar Chart 8
+
+      // Bar Chart 8 SVG Creation
+      var barChartEightSVG = d3.select("#chart8").append("svg")
+          .attr( "width", width  + margin.left +  margin.right)
+          .attr("height", height + margin.top  + margin.bottom)
+        .append("g")
+          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      // Bar Chart 8 X Axis Scale
+      var barChartEightXScale = d3.scale.ordinal()
+          .domain(data[7].barSeries.map(function(d) { return d.date; }))
+          .rangeRoundBands([0, width], .1);
+
+      // Bar Chart 8 Y Axis Scale
+      var barChartEightYScale = d3.scale.linear()
+          .domain([0, d3.max(data[7].barSeries, function(d) { return d.value; })])
+          .range([height, 0]).nice();
+
+      // Bar Chart 8 X Axis Definition
+      var barChartEightXAxis = d3.svg.axis()
+          .scale(barChartEightXScale)
+          .orient("bottom");
+
+      // Bar Chart 8 Y Axis Definition
+      var barChartEightYAxis = d3.svg.axis()
+          .scale(barChartEightYScale)
+          .orient("left");
+
+      // Bar Chart 8 X Axis Creation
+      barChartEightSVG.append("g")
+          .attr("class", "x axis")
+          .attr("transform", "translate(0," + height + ")")
+          .call(barChartEightXAxis);
+
+      // Bar Chart 8 Y Axis Creation
+      barChartEightSVG.append("g")
+          .attr("class", "y axis")
+          .call(barChartEightYAxis);
+
+      // Bar Chart 8 Bar Creation
+      barChartEightSVG.append("g").attr("class", "chartEightBars").selectAll("rect")
+          .data(data[7].barSeries)
+        .enter().append("rect")
+          .attr("class", function(d) { return "bar" + classFormatDate(d.date); })
+          .attr("x", function(d) { return barChartEightXScale(d.date); })
+          .attr("y", function(d) { return barChartEightYScale(d.value); })
+          .attr("width", barChartEightXScale.rangeBand())
+          .attr("height", function(d) { return height - barChartEightYScale(d.value); });
+
+      // Bar Chart 8 Label Creation
+      barChartEightSVG.append("g")
+          .datum(data[7])
+        .append("text")
+          .attr("class", "chartLabel")
+          .attr("x", 0)
+          .attr("y", height + 30)
+          .text(function(d) { return d.Category; });
+
+      // Bar Chart 8 Data Label Creation
+      barChartEightSVG.append("g")
+          .datum(data[7])
+        .append("text")
+          .attr("class", "chartDataLabel")
+          .attr("x", 0)
+          .attr("y", height + 15)
+          .text(null);
+
+      //
+      //
+      // Add Interaction
+      d3.selectAll("rect")
+          .on("mouseover", mouseOver)
+          .on("mouseout", mouseOut);
+
+    }); // end d3.csv(...) {...};
+    
+    
+    //
+    //
+    // Extra Functions
+    
+    // Mouse Over Function
+    function mouseOver (d) {
+
+      // Create selection with current bar
+      var currentBar = d3.select(this);
+
+      // Set Date of Top Div
+      d3.select("#dateID").text(formatTopDate(currentBar.data()[0].date));
+
+      // Create selection of all bars with the same class based on the date of the bar Moused Over
+      var sameDateBars = d3.selectAll("." + currentBar.attr("class"));
+
+      // Set the text of all the chart's chartDataLabels
+      d3.selectAll(".chartDataLabel")
+          .text(function(d, i) { return chartDataLabelFormatter(sameDateBars.data()[i].value); });
+
+      // Transition the color of the bars of the sameDateBars Selection
+      sameDateBars
+          .transition()
+          .duration(500)
+          .style("fill", "red");
+    };
+
+    // Mouse Out Function
+    function mouseOut (d) {
+
+      // Create selection with current bar
+      var currentBar = d3.select(this);
+
+      // Remove Date of Top Div
+      d3.select("#dateID").text(null);
+
+      // Create selection of all bars with the same class based on the date of the bar Moused Over
+      var sameDateBars = d3.selectAll("." + currentBar.attr("class"));
+
+      // Set the text of all the chart's chartDataLabels
+      d3.selectAll(".chartDataLabel")
+          .text(null);
+  
+      // Transition the color of the bars of the sameDateBars Selection
+      sameDateBars
+          .transition()
+          .duration(500)
+          .style("fill", "steelblue");
+    };
+    
+    </script>
+	</body>
+</html>

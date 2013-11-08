@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <style type="text/css">
+      body { background: #222; }
+      #attribution { color: white; }
+      a { color: white; }
+      circle { fill: none; stroke-width: 1.5px; }
+    </style>
+  </head>
+  <body>
+    <script type="text/javascript">
+        var w = 600,
+            h = 600,
+            z = d3.scale.category20c(),
+            i = 0;
+
+        var svg = d3.select("body").append("svg")
+            .attr("width", w)
+            .attr("height", h)
+            .on("mousemove", particle);
+
+        function particle() {
+          var m = d3.mouse(this);
+          
+          svg.append("circle")
+              .attr("cx", m[0])
+              .attr("cy", m[1])
+              .attr("r", 1e-6)
+              .style("stroke", z(++i))
+              .style("stroke-opacity", 1)
+            .transition()
+              .duration(4000)
+              .ease(Math.sqrt)
+              .attr("r", 100)
+              .style("stroke-opacity", 1e-6)
+              .remove();
+        }
+    </script>
+    <br />
+    <div id="attribution">
+      Based on <a href="http://bl.ocks.org/mbostock/1062544">OMG Particles! (D3) Mike Bostock Example</a>
+    </div>
+  </body>
+</html>
